@@ -12,10 +12,19 @@ for result in results:
     print("SOURCE:", result.metadata.get("source"))
     print("TEXT:", result.page_content[:400])
     print("---")
-# locating the chunk directly since shakes chunk not coming up with s.s
+# Get every single chunk stored in the database as a dictionary
 all_docs = vdb._collection.get()
+
+# all_docs['documents'] is a list of all chunk texts
+# enumerate gives us both the index number (i) and the chunk text (doc)
 for i, doc in enumerate(all_docs['documents']):
+    
+    # .lower() converts to lowercase so "Shakes" and "shakes" both match
     if 'shakes' in doc.lower():
+        
+        # f string lets us put the variable i directly into the string
         print(f"FOUND IN CHUNK {i}:")
+        
+        # Print the full chunk text
         print(doc)
         print("---")

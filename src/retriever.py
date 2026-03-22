@@ -50,7 +50,7 @@ def answer_question(query:str):
 # Empty prompt
     prompt = build_prompt()
     # the llm model is the same for the user to talk to essentially
-    llm = ChatOllama(model="mistral")
+    llm = ChatOllama(model="mistral", temperature=0.2)
 # pipe operator from Langchain, building chains LCEL
     chain = prompt|llm
     # fill in prompt and send to Mistral and get response
