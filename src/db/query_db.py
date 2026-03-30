@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 # The file path where our SQLite database will be saved
-db_path = os.path.join("..", "..", "data", "maintenance_logs.db")
+db_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "maintenance_logs.db")
 
 def query_by_machine_id(machine_id):
     # Connect to the database file (creates the file if it doesn't exist yet)
@@ -13,13 +13,12 @@ def query_by_machine_id(machine_id):
     cursor.execute("SELECT * FROM maintenance_logs WHERE machine_id = ?" ,(machine_id,))
     
     rows = cursor.fetchall() 
-    # Print column headers from the cursor description
-    print([description[0] for description in cursor.description])   
-    for display in rows:
-        print(display)
+    
+   
     
 
     # Save the changes and close the connection cleanly
+    return rows
     db_conn.close()
 
     # Need 3 different fucntiosn mainly based on the input the user will type in either by machine id, error code or description
@@ -32,12 +31,10 @@ def query_by_error_code(error_code):
     cursor.execute("SELECT * FROM maintenance_logs WHERE error_code = ?" ,(error_code,))
     
     rows = cursor.fetchall() 
-    # Print column headers from the cursor description
-    print([description[0] for description in cursor.description])   
-    for display in rows:
-        print(display)
+       
 
     # query by fault descr. provided by user
+    return rows
     db_conn.close()
 
 def query_by_fault_descr(fault_descr):
@@ -49,11 +46,11 @@ def query_by_fault_descr(fault_descr):
     cursor.execute("SELECT * FROM maintenance_logs WHERE fault_description LIKE ?" ,(f'%{fault_descr}%',))
     
     rows = cursor.fetchall() 
-    # Print column headers from the cursor description
-    print([description[0] for description in cursor.description])   
-    for display in rows:
-        print(display)
+    
+    
+    
     # Save the changes and close the connection cleanly
+    return rows
     db_conn.close()
 if __name__ == "__main__":
     # checking if folder exists before running

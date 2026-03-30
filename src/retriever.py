@@ -6,11 +6,14 @@ from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import ChatOllama
+from db.query_db import query_by_error_code, query_by_fault_descr, query_by_machine_id
+import os
+
 # Load the db again and initialse the embeddingModel for the user query
 def load_vdb():
     embeddings = OllamaEmbeddings(model="mistral")
     return Chroma(
-        persist_directory="data/chroma_db",
+        persist_directory=os.path.join(os.path.dirname(__file__), "..", "data", "chroma_db"),
         embedding_function= embeddings,
     )
 # a function to get the top 3 chunks similar to the users query 
@@ -41,10 +44,15 @@ Answer:
 def answer_question(query:str):
     vdb = load_vdb()
     results = retrieve_context(query,vdb)
+    
+    sql_fault_id = query_by_fault_descr(query)
+    sql_fault_format = []
+    for row in sql_fault_id:
+        sql_fault_format.append(str(row))
+    sql_context = "\n\n".join(sql_fault_format)
     # Joining the 3  chunks into one single string separated by blank lines to use as context in the prompt formatting it 
-
     context = "\n\n".join([doc.page_content for doc in results])
-
+    combined_context = context + "\n\n" + sql_context
     # Obtaining the source filename from each retrieved chunks metadata for citations otherwise return Unknown if not available ,prevents hallucination
     sources = [doc.metadata.get("source", "Unknown")for doc in results]
 # Empty prompt
@@ -53,8 +61,11 @@ def answer_question(query:str):
     llm = ChatOllama(model="mistral", temperature=0.2)
 # pipe operator from Langchain, building chains LCEL
     chain = prompt|llm
+
+    print("\n--COMBINED CONTEXT--")
+    print(combined_context[:500])
     # fill in prompt and send to Mistral and get response
-    response = chain.invoke({"context": context, "question":query})
+    response = chain.invoke({"context": combined_context, "question":query})
 # returning dictionary for the UI to display
     return {
         "answer" : response.content,
@@ -62,7 +73,7 @@ def answer_question(query:str):
     }
 
 if __name__ == "__main__":
-    query = " machine shakes heavy ?"
+    query = "injection pressure drop"
     result = answer_question(query)
     print("\n----ANSWER----")
     print(result["answer"])
@@ -70,3 +81,4 @@ if __name__ == "__main__":
     print("\n----SOURCES----")
     for inc in result["sources"]:
         print(inc)
+# python retriever.py
